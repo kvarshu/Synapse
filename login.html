@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync AI - Secure Login</title>
+    <style>
+        /* =========================
+        GLOBAL
+        ========================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: "Inter", sans-serif;
+            background: #04010d;
+        }
+
+        /* =========================
+        MAIN SCREEN
+        ========================= */
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        /* =========================
+        VIDEO & OVERLAY
+        ========================= */
+        .bg-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .35;
+        }
+
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(
+                circle at center,
+                rgba(3, 3, 15, 0.4) 0%,
+                rgba(3, 3, 15, 0.95) 100%
+            );
+            z-index: 1;
+        }
+
+        /* =========================
+        GLOW EFFECTS
+        ========================= */
+        .glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 2;
+        }
+
+        .glow1 {
+            width: 600px;
+            height: 600px;
+            background: #9333ea;
+            top: -200px;
+            left: -200px;
+            animation: float1 8s infinite alternate;
+        }
+
+        .glow2 {
+            width: 500px;
+            height: 500px;
+            background: #06b6d4;
+            right: -150px;
+            bottom: -150px;
+            animation: float2 10s infinite alternate;
+        }
+
+        @keyframes float1 {
+            from { transform: translateY(0px); }
+            to { transform: translateY(80px); }
+        }
+
+        @keyframes float2 {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-80px); }
+        }
+
+        /* =========================
+        WRAPPER (CENTERED)
+        ========================= */
+        .login-wrapper {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            padding: 20px;
+        }
+
+        /* =========================
+        LOGIN CARD (SCALED +50%)
+        ========================= */
+        .login-panel {
+            width: 100%;
+            max-width: 720px; /* Increased from 480px (50% increase) */
+            padding: 63px;    /* Increased from 42px */
+            border-radius: 50px;
+            background: linear-gradient(
+                180deg,
+                rgba(15, 15, 35, .72),
+                rgba(8, 8, 24, .88)
+            );
+            border: 1px solid rgba(255, 255, 255, .08);
+            backdrop-filter: blur(30px);
+            box-shadow: 0 45px 90px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(255, 255, 255, .03);
+            animation: cardEnter 0.8s cubic-bezier(.2, .8, .2, 1);
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(30px) scale(.95); }
+            to { opacity: 1; transform: translateY(0px) scale(1); }
+        }
+
+        /* =========================
+        LOGO SECTION
+        ========================= */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .logo-box {
+            width: 96px; /* Scaled up */
+            height: 96px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #9333ea, #06b6d4);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 0 40px rgba(147, 51, 234, .4);
+        }
+
+        .logo-box svg {
+            width: 45px;
+            height: 45px;
+        }
+
+        .logo-section h1 {
+            color: white;
+            font-size: 48px; /* Scaled up */
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .logo-section p {
+            margin-top: 4px;
+            color: #b0b0ca;
+            font-size: 18px;
+        }
+
+        /* =========================
+        STATUS
+        ========================= */
+        .status-badge {
+            width: max-content;
+            padding: 15px 28px;
+            border-radius: 999px;
+            background: rgba(57, 183, 255, .08);
+            border: 1px solid rgba(57, 183, 255, .22);
+            color: #5fd6ff;
+            font-size: 18px; /* Scaled up */
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff99;
+            animation: pulseDot 1s infinite;
+        }
+
+        /* =========================
+        HERO TEXT
+        ========================= */
+        .hero-text h2 {
+            font-size: 54px; /* Scaled up */
+            line-height: 1.1;
+            color: white;
+            margin-bottom: 18px;
+        }
+
+        .hero-text p {
+            color: #a7a7c7;
+            line-height: 1.6;
+            margin-bottom: 45px;
+            font-size: 21px; /* Scaled up */
+        }
+
+        /* =========================
+        LOGIN SWITCH
+        ========================= */
+        .login-switch {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 40px;
+        }
+
+        .switch-btn {
+            flex: 1;
+            height: 75px; /* Scaled up */
+            border: none;
+            cursor: pointer;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .06);
+            color: #b6b6d0;
+            font-size: 20px;
+            font-weight: 600;
+            transition: .3s;
+        }
+
+        .switch-btn.active {
+            background: linear-gradient(90deg, #9333ea, #06b6d4);
+            color: white;
+            box-shadow: 0 0 35px rgba(147, 51, 234, .35);
+        }
+
+        /* =========================
+        FORM
+        ========================= */
+        .input-group { margin-bottom: 30px; }
+        .input-group label { display: block; margin-bottom: 15px; color: #d5d5ec; font-size: 18px; }
+        .input-group input {
+            width: 100%;
+            height: 85px; /* Scaled up */
+            border: none;
+            outline: none;
+            border-radius: 24px;
+            padding: 0 30px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .06);
+            color: white;
+            font-size: 21px; /* Scaled up */
+            transition: .3s;
+        }
+
+        .input-group input:focus {
+            border-color: rgba(57, 183, 255, .4);
+            background: rgba(255, 255, 255, .07);
+        }
+
+        /* =========================
+        OPTIONS
+        ========================= */
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .remember { color: #b5b5cf; display: flex; align-items: center; gap: 15px; font-size: 18px; cursor: pointer; }
+        .remember input { width: 22px; height: 22px; }
+        .options-row a { color: #67d4ff; text-decoration: none; font-size: 18px; }
+
+        /* =========================
+        LOGIN BUTTON
+        ========================= */
+        .login-btn {
+            width: 100%;
+            height: 90px; /* Scaled up */
+            border: none;
+            cursor: pointer;
+            border-radius: 25px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(90deg, #9333ea, #d946ef, #06b6d4);
+            color: white;
+            font-size: 24px; /* Scaled up */
+            font-weight: 700;
+            transition: .35s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(217, 70, 239, .3);
+        }
+
+        .btn-shine {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .2), transparent);
+            transform: translateX(-100%);
+            animation: shine 3.5s infinite;
+        }
+
+        @keyframes shine { 100% { transform: translateX(100%); } }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="login-screen">
+    <!-- VIDEO BACKGROUND -->
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="YOUR_VIDEO.mp4" type="video/mp4">
+    </video>
+
+    <div class="video-overlay"></div>
+
+    <div class="glow glow1"></div>
+    <div class="glow glow2"></div>
+
+    <div class="login-wrapper">
+        <!-- 50% LARGER CENTERED LOGIN CARD -->
+        <div class="login-panel" id="loginCard">
+            <!-- LOGO -->
+            <div class="logo-section">
+                <div class="logo-box">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 12h4l2-7 4 14 2-7h6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <div>
+                    <h1>MediSync AI</h1>
+                    <p>Healthcare Intelligence Platform</p>
+                </div>
+            </div>
+
+            <!-- ACTIVE STATUS -->
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                AI SYSTEM ACTIVE
+            </div>
+
+            <!-- HEADING -->
+            <div class="hero-text">
+                <h2>Secure Access</h2>
+                <p>Connect to intelligent diagnostics and AI-powered healthcare systems.</p>
+            </div>
+
+            <!-- LOGIN TYPE TOGGLE -->
+            <div class="login-switch">
+                <button class="switch-btn active" id="doctorBtn">Doctor</button>
+                <button class="switch-btn" id="patientBtn">Patient</button>
+            </div>
+
+            <!-- FORM -->
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="emailField" placeholder="doctor@medisync.ai" required />
+                </div>
+
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="••••••••••" required />
+                </div>
+
+                <div class="options-row">
+                    <label class="remember">
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <a href="#">Forgot Password?</a>
+                </div>
+
+                <!-- LOGIN BUTTON -->
+                <button class="login-btn" type="submit">
+                    <span class="btn-text">Access Dashboard</span>
+                    <div class="btn-shine"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* =========================
+    LOGIN TOGGLE LOGIC
+    ========================= */
+    const doctorBtn = document.getElementById("doctorBtn");
+    const patientBtn = document.getElementById("patientBtn");
+    const emailField = document.getElementById("emailField");
+
+    doctorBtn.onclick = () => {
+        doctorBtn.classList.add("active");
+        patientBtn.classList.remove("active");
+        emailField.placeholder = "doctor@medisync.ai";
+    };
+
+    patientBtn.onclick = () => {
+        patientBtn.classList.add("active");
+        doctorBtn.classList.remove("active");
+        emailField.placeholder = "patient@medisync.ai";
+    };
+
+    /* =========================
+    FORM SUBMISSION & REDIRECT
+    ========================= */
+    const form = document.getElementById("loginForm");
+    
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const btn = document.querySelector(".login-btn");
+        const text = document.querySelector(".btn-text");
+
+        text.innerHTML = "Authenticating...";
+        btn.style.opacity = ".85";
+        btn.style.pointerEvents = "none";
+
+        setTimeout(() => {
+            text.innerHTML = "Access Granted ✓";
+            btn.style.background = "linear-gradient(90deg, #00ff99, #06b6d4)";
+            
+            setTimeout(() => {
+                window.location.href = "UI12backup.html";
+            }, 800);
+        }, 1500);
+    });
+</script>
+
+</body>
+</html>
